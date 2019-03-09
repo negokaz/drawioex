@@ -6,8 +6,6 @@
   "dependencies": {
     "commander": "^2.19.0",
     "fs": "^0.0.1-security",
-    "mxgraph": "^3.9.12",
-    "pako": "^1.0.8",
     "puppeteer": "^1.12.2",
     "xmldom": "^0.1.27",
     "xpath": "^0.0.27"
