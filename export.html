@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script>
+            mxBasePath = 'drawio/mxgraph';
+            STENCIL_PATH = 'drawio/stencils';
+            isLocalStorage = false;
+            mxLoadStylesheets = false;
+        </script>
+        <script src="drawio/js/app.min.js"></script>
+        <script src="drawio/js/stencils.min.js"></script>
+        <script>
+            EditorUi.prototype.isLocalFileSave = () => true;
+            EditorUi.prototype.request = { 
+                send: () => true 
+            };
+            EditorUi.prototype.spinner = { 
+                spin: () => true,
+                stop: () => true
+            };
+            function exportSvg(xml) {
+
+                // Parses XML
+                const graph = new Graph(document.getElementById('graph'));
+                EditorUi.prototype.editor = { graph: graph };
+                const xmlDoc = mxUtils.parseXml(xml);
+
+			    let diagrams = null;
+                // Handles mxfile
+                if (xmlDoc.documentElement.nodeName == 'mxfile')
+                {
+                    diagrams = xmlDoc.documentElement.getElementsByTagName('diagram');
+                }
+
+                const sizeOfDiagrams = diagrams.length;
+                const results = [];
+                for (let i = 0; i < sizeOfDiagrams; i++) {
+                    const diagramXmlDoc = mxUtils.parseXml(Graph.decompress(mxUtils.getTextContent(diagrams[i])));
+                    graph.getModel().clear();
+                    
+                    // Parses XML into graph
+                    const codec = new mxCodec(diagramXmlDoc);
+                    const model = graph.getModel();
+                    codec.decode(diagramXmlDoc.documentElement, model);
+                    const promise = new Promise(resolve => {
+                        EditorUi.prototype.saveData = function(filename, format, data, mime) {
+                            resolve(data);
+                        }
+                        EditorUi.prototype.exportSvg(1.0, true);
+                    });
+                    results.push(promise);
+                }
+                return results;
+            }
+        </script>
+    </head>
+    <body>
+        <div id="graph"></div>
+    </body>
+</html>
