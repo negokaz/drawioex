@@ -31,26 +31,21 @@
                 {
                     diagrams = xmlDoc.documentElement.getElementsByTagName('diagram');
                 }
-
-                const sizeOfDiagrams = diagrams.length;
-                const results = [];
-                for (let i = 0; i < sizeOfDiagrams; i++) {
-                    const diagramXmlDoc = mxUtils.parseXml(Graph.decompress(mxUtils.getTextContent(diagrams[i])));
+                return Array.from(diagrams).map(diagram => {
+                    const diagramXmlDoc = mxUtils.parseXml(Graph.decompress(mxUtils.getTextContent(diagram)));
                     graph.getModel().clear();
                     
                     // Parses XML into graph
                     const codec = new mxCodec(diagramXmlDoc);
                     const model = graph.getModel();
                     codec.decode(diagramXmlDoc.documentElement, model);
-                    const promise = new Promise(resolve => {
+                    return new Promise(resolve => {
                         EditorUi.prototype.saveData = function(filename, format, data, mime) {
                             resolve(data);
                         }
                         EditorUi.prototype.exportSvg(1.0, true);
                     });
-                    results.push(promise);
-                }
-                return results;
+                });
             }
         </script>
     </head>
