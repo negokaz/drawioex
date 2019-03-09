@@ -28,4 +28,4 @@ git rebase refs/tags/${tag}
 
 git subtree split --prefix=src/main/webapp/ -b drawio/webapp --squash
 git checkout ${current_branch}
-git subtree merge --prefix=drawio --squash drawio/webapp
+git subtree merge --prefix=drawio --message="merged drawio webapp (Tag: ${tag})" --squash drawio/webapp
