@@ -30,11 +30,12 @@ function main() {
 async function exportFiles(filePaths) {
     const outputExtension = program.format;
     const nonDebugMode = !program.debug;
+    const outputDirectory = program.output;
     const browser = await puppeteer.launch({headless: nonDebugMode, args: ['--no-sandbox', '--disable-web-security']});
     try {
         const browserPage = await browser.newPage();
         await browserPage.goto(`file://${__dirname}/export.html`);
-        const exportings = filePaths.map(filePath => exportFile(filePath, outputExtension, browserPage));
+        const exportings = filePaths.map(filePath => exportFile(filePath, outputDirectory, outputExtension, browserPage));
         return await Promise.all(exportings);
     } catch (error) {
         console.log(error);
@@ -46,10 +47,9 @@ async function exportFiles(filePaths) {
     }
 }
 
-async function exportFile(filePath, outputExtension, browserPage) {
-    const dirname  = path.dirname(filePath);
+async function exportFile(filePath, outputDirectory, outputExtension, browserPage) {
     const basename = path.basename(filePath, path.extname(filePath));
-    const baseFilePath = path.join(dirname, basename);
+    const baseFilePath = path.join(outputDirectory, basename);
 
     const fileContent = readFile(filePath, 'utf-8');
     const results =
