@@ -1,0 +1,31 @@
+#!/bin/bash
+
+readonly tag=$1
+readonly current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ -z "${tag}" ]; then
+    echo "Please specify tag" >&2
+    exit 1
+fi
+
+if ! git diff --quiet --exit-code; then
+    echo "Please commit or stash your changes" >&2
+    echo "===================================" >&2
+    git status
+    exit 1
+fi
+
+if ! git tag | grep -x ${tag}; then
+    echo "Tag ${tag} does not exist" >&2
+    exit 1
+fi
+
+set -xe
+
+git checkout drawio/root
+git fetch drawio
+git rebase refs/tags/${tag}
+
+git subtree split --prefix=src/main/webapp/ -b drawio/webapp --squash
+git checkout ${current_branch}
+git subtree merge --prefix=drawio --squash drawio/webapp
