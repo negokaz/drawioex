@@ -17,8 +17,8 @@ function main() {
         .name(package.name)
         .version(package.version)
         .option('-f --format <format>',
-            'file format to export [svg]',
-            /^(svg)$/, 'svg')
+            'file format to export [svg, png]',
+            /^(svg|png)$/, 'svg')
         .option('-o --output <directory>',
             'selects a output directory', parseDirectory, process.cwd())
         .option('--debug', 'enable debug mode')
@@ -28,14 +28,15 @@ function main() {
 }
 
 async function exportFiles(filePaths) {
-    const outputExtension = program.format;
     const nonDebugMode = !program.debug;
+    const format = program.format;
     const outputDirectory = program.output;
+    const outputExtension = program.format;
     const browser = await puppeteer.launch({headless: nonDebugMode, args: ['--no-sandbox', '--disable-web-security']});
     try {
         const browserPage = await browser.newPage();
         await browserPage.goto(`file://${__dirname}/export.html`);
-        const exportings = filePaths.map(filePath => exportFile(filePath, outputDirectory, outputExtension, browserPage));
+        const exportings = filePaths.map(filePath => exportFile(filePath, format, outputDirectory, outputExtension, browserPage));
         return await Promise.all(exportings);
     } catch (error) {
         console.log(error);
@@ -47,15 +48,15 @@ async function exportFiles(filePaths) {
     }
 }
 
-async function exportFile(filePath, outputDirectory, outputExtension, browserPage) {
+async function exportFile(filePath, format, outputDirectory, outputExtension, browserPage) {
     const basename = path.basename(filePath, path.extname(filePath));
     const baseFilePath = path.join(outputDirectory, basename);
 
     const fileContent = readFile(filePath, 'utf-8');
     const results =
-        await browserPage.evaluate((xml) => {
-            return Promise.all(exportSvg(xml));
-        }, await fileContent);
+        await browserPage.evaluate((xml, format) => {
+            return Promise.all(exportImage(xml, format));
+        }, await fileContent, format);
     const writings =
         results.map((result, index) => {
             const outputFilePath = 
@@ -63,7 +64,7 @@ async function exportFile(filePath, outputDirectory, outputExtension, browserPag
                     ? `${baseFilePath}.${index}.${outputExtension}` 
                     : `${baseFilePath}.${outputExtension}`;
             console.log(`exporting ${outputFilePath}`);
-            return writeFile(outputFilePath, result)
+            return writeFile(outputFilePath, result.data, result.encoding);
         });
     return Promise.all(writings);
 }

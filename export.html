@@ -18,11 +18,9 @@
                 spin: () => true,
                 stop: () => true
             };
-            function exportSvg(xml) {
+            function exportImage(xml, format) {
 
                 // Parses XML
-                const graph = new Graph(document.getElementById('graph'));
-                EditorUi.prototype.editor = { graph: graph };
                 const xmlDoc = mxUtils.parseXml(xml);
 
 			    let diagrams = null;
@@ -32,6 +30,12 @@
                     diagrams = xmlDoc.documentElement.getElementsByTagName('diagram');
                 }
                 return Array.from(diagrams).map(diagram => {
+                    // to avoid data race
+                    const ui = Object.assign({}, EditorUi.prototype);
+                    
+                    const element = document.createElement('div');
+                    const graph = new Graph(element);
+                    ui.editor = { graph: graph };
                     const diagramXmlDoc = mxUtils.parseXml(Graph.decompress(mxUtils.getTextContent(diagram)));
                     graph.getModel().clear();
                     
@@ -40,16 +44,41 @@
                     const model = graph.getModel();
                     codec.decode(diagramXmlDoc.documentElement, model);
                     return new Promise(resolve => {
-                        EditorUi.prototype.saveData = function(filename, format, data, mime) {
-                            resolve(data);
+                        ui.saveData = function(filename, format, data, mime, base64Encoded) {
+                            element.remove();
+                            resolve({ data: data, encoding: base64Encoded ? 'base64' : 'utf8' });
+                        };
+                        if (format == 'svg') {
+                            ui.exportSvg(
+                                /* scale */ 1.0,
+                                /* transparentBackground */ true,
+                                /* ignoreSelection */ null,
+                                /* addShadow */ null,
+                                /* editable */ null,
+                                /* embedImages */ null,
+                                /* border */ null,
+                                /* noCrop */ null,
+                                /* currentPage */ null,
+                                /* linkTarget */ null,
+                            );
+                        } else {
+                            ui.exportImage(
+                                /* scale */ 1.0,
+                                /* transparentBackground */ true,
+                                /* ignoreSelection */ null,
+                                /* addShadow */ null,
+                                /* editable */ null,
+                                /* border */ null,
+                                /* noCrop */ null,
+                                /* currentPage */ null,
+                                /* format */ format,
+                            );
                         }
-                        EditorUi.prototype.exportSvg(1.0, true);
                     });
                 });
             }
         </script>
     </head>
     <body>
-        <div id="graph"></div>
     </body>
 </html>
