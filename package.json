@@ -22,6 +22,7 @@
   },
   "scripts": {
     "start": "node app.js",
+    "test": "test/test.sh",
     "fetch-drawio": "bin/fetch-drawio"
   },
   "dependencies": {

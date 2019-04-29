@@ -18,7 +18,7 @@
                 spin: () => true,
                 stop: () => true
             };
-            function exportImage(xml, format) {
+            function exportImage(xml, format, embedImages) {
 
                 // Parses XML
                 const xmlDoc = mxUtils.parseXml(xml);
@@ -35,7 +35,7 @@
                     
                     const element = document.createElement('div');
                     const graph = new Graph(element);
-                    ui.editor = { graph: graph };
+                    ui.editor = { graph: graph, isCorsEnabledForUrl: () => true };
                     const diagramXmlDoc = mxUtils.parseXml(Graph.decompress(mxUtils.getTextContent(diagram)));
                     graph.getModel().clear();
                     
@@ -55,7 +55,7 @@
                                 /* ignoreSelection */ null,
                                 /* addShadow */ null,
                                 /* editable */ null,
-                                /* embedImages */ null,
+                                /* embedImages */ embedImages,
                                 /* border */ null,
                                 /* noCrop */ null,
                                 /* currentPage */ null,

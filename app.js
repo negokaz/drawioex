@@ -21,6 +21,7 @@ function main() {
             /^(svg|png)$/, 'svg')
         .option('-o --output <directory>',
             'selects a output directory', parseDirectory, process.cwd())
+        .option('--embed-images', '[svg] embed externally linked images')
         .option('--debug', 'enable debug mode')
         .arguments('<xml-files...>')
         .action(exportFiles)
@@ -36,7 +37,7 @@ async function exportFiles(filePaths) {
     try {
         const browserPage = await browser.newPage();
         await browserPage.goto(`file://${__dirname}/export.html`);
-        const exportings = filePaths.map(filePath => exportFile(filePath, format, outputDirectory, outputExtension, browserPage));
+        const exportings = filePaths.map(filePath => exportFile(filePath, format, outputDirectory, outputExtension, browserPage, program));
         return await Promise.all(exportings);
     } catch (error) {
         console.log(error);
@@ -48,15 +49,15 @@ async function exportFiles(filePaths) {
     }
 }
 
-async function exportFile(filePath, format, outputDirectory, outputExtension, browserPage) {
+async function exportFile(filePath, format, outputDirectory, outputExtension, browserPage, program) {
     const basename = path.basename(filePath, path.extname(filePath));
     const baseFilePath = path.join(outputDirectory, basename);
 
     const fileContent = readFile(filePath, 'utf-8');
     const results =
-        await browserPage.evaluate((xml, format) => {
-            return Promise.all(exportImage(xml, format));
-        }, await fileContent, format);
+        await browserPage.evaluate((xml, format, embedImages) => {
+            return Promise.all(exportImage(xml, format, embedImages));
+        }, await fileContent, format, program.embedImages);
     const writings =
         results.map((result, index) => {
             const outputFilePath = 
