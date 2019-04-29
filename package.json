@@ -1,6 +1,6 @@
 {
   "name": "drawioex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Export images from draw.io documents",
   "keywords": [
     "draw.io",
@@ -13,8 +13,8 @@
   },
   "license": "MIT",
   "author": "Kazuki Negoro <negokaz@gmail.com> (https://github.com/negokaz/)",
-  "bin" : {
-    "drawioex" : "./app.js"
+  "bin": {
+    "drawioex": "./app.js"
   },
   "repository": {
     "type": "git",
